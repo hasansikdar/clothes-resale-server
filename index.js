@@ -25,6 +25,37 @@ async function run() {
             res.send(result);
         })
 
+        // advertise products 
+        app.get('/advertiseProducts', async(req, res) => {
+            const query = {
+                advertise: 'advertise'
+            };
+            const AdvertiseProducts = await productsCollection.find(query).toArray();
+            const AlreadyOrdersProduct = await ordersCollection.find({}).toArray();
+
+            const AlreadyOrdersProductName = AlreadyOrdersProduct.map(item => item?.productName)
+
+            // console.log(AlreadyOrdersProductName)
+            const remainningProducts = AdvertiseProducts.filter(product => !AlreadyOrdersProductName.includes(product?.productName))
+            res.send(remainningProducts);
+
+        })
+
+        // handleUpdateProducts value advertise
+        app.put('/dashboard/my-products/:id', async(req, res) => {
+            const id = req.params.id;
+            const filter = {_id: ObjectId(id)}
+            const options = {upsert: true};
+            const updateDoc = {
+                $set: {
+                    advertise: 'advertise'
+                }
+            }
+            const result = await productsCollection.updateOne(filter, updateDoc, options)
+            res.send(result);
+        })
+
+
         // users availabe checked
         app.get('/users', async(req, res) => {
             const reqEmail = req.query.email;
@@ -119,6 +150,32 @@ async function run() {
             const result = await ordersCollection.find(query).toArray();
             res.send(result);
         })
+
+
+        //admin created 
+        app.put('/users/admin/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {
+                _id: ObjectId(id)
+            }
+            const options = {upsert: true};
+            const updateDoc = {
+                $set:{
+                    role: 'admin',
+                }
+            }
+            const result = await usersCollection.updateOne(query, updateDoc, options)
+            res.send(result);
+        })
+
+        // send user 
+        app.get('/users/admin/:email', async(req, res) => {
+            const email = req.params.email;
+            const query = {email: email};
+            const result = await usersCollection.findOne(query);
+            res.send(result);
+        })
+
 
     }
     finally {
